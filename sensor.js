@@ -8,11 +8,11 @@ class Sensor {
     this.rays = [];
     this.readings = [];
   }
-  update(roadBorders) {
+  update(roadBorders, traffic) {
     this.#castRays();
     this.readings = [];
     for (let i = 0; i < this.rays.length; i++) {
-      this.readings.push(this.#getReading(this.rays[i], roadBorders));
+      this.readings.push(this.#getReading(this.rays[i], roadBorders, traffic));
     }
   }
   draw(ct) {
@@ -23,23 +23,23 @@ class Sensor {
       }
       const ray = this.rays[i];
 
-      ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "yellow";
-      ctx.moveTo(ray[0].x, ray[0].y);
-      ctx.lineTo(end.x, end.y);
-      ctx.stroke();
+      carCtx.beginPath();
+      carCtx.lineWidth = 2;
+      carCtx.strokeStyle = "yellow";
+      carCtx.moveTo(ray[0].x, ray[0].y);
+      carCtx.lineTo(end.x, end.y);
+      carCtx.stroke();
 
-      ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "black";
-      ctx.moveTo(ray[1].x, ray[1].y);
-      ctx.lineTo(end.x, end.y);
-      ctx.stroke();
+      carCtx.beginPath();
+      carCtx.lineWidth = 2;
+      carCtx.strokeStyle = "black";
+      carCtx.moveTo(ray[1].x, ray[1].y);
+      carCtx.lineTo(end.x, end.y);
+      carCtx.stroke();
     }
   }
 
-  #getReading(ray, roadBorders) {
+  #getReading(ray, roadBorders, traffic) {
     let touches = [];
     for (let i = 0; i < roadBorders.length; i++) {
       const touch = getIntersection(
@@ -50,6 +50,21 @@ class Sensor {
       );
       if (touch) {
         touches.push(touch);
+      }
+    }
+
+    for (let i = 0; i < traffic.length; i++) {
+      const poly = traffic[i].polygon;
+      for (let j = 0; j < poly.length; j++) {
+        const value = getIntersection(
+          ray[0],
+          ray[1],
+          poly[j],
+          poly[(j + 1) % poly.length]
+        );
+        if (value) {
+          touches.push(value);
+        }
       }
     }
     if (touches.length == 0) {
